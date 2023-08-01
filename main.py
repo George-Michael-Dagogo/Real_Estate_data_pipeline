@@ -3,7 +3,9 @@ import requests
 import pandas as pd
 import re
 
-url = 'https://www.propertypro.ng/property-for-short-let?sort=postedOn&order=desc'
+
+url = [f'https://www.propertypro.ng/property-for-short-let?sort=beds&order=desc&page={i:d}'  for i in (range(0, 67))]
+
 
 titles= []
 types = []
@@ -15,7 +17,7 @@ furnished = []
 beds = []
 
 
-def scraper_per_page(url):
+def extract_data(url):
     print('began')
     page = requests.get(url)
     soup = BeautifulSoup(page.text,  "html.parser")
@@ -79,15 +81,57 @@ def scraper_per_page(url):
             beds.append('No beds')
 
 
-scraper_per_page(url)
+def transform_data():
+    df = pd.DataFrame({'title': titles, 
+                            'categories': types,
+                            'address': locations,
+                            'price': prices,
+                            'date_posted': date_posted,
+                            'PIDs': PIDs,
+                            'furnish': furnished,
+                            'bed': beds})
 
-df = pd.DataFrame({'title': titles, 
-                        'categories': types,
-                        'locations': locations,
-                        'prices': prices,
-                        'date_posted ': date_posted,
-                        'PIDs': PIDs,
-                        'furnished': furnished,
-                        'beds': beds})
+    df['newly_built'] = df['furnish'].apply(lambda text: 'Newly Built' in text)
+    df['serviced'] = df['furnish'].apply(lambda text: 'Serviced' in text)
+    df['furnished'] = df['furnish'].apply(lambda text: 'Furnished' in text)
+    df.drop('furnish', axis=1, inplace=True)
+    df[['beds', 'baths', 'toilets']] = df['bed'].str.extract(r'(\d+)\s*beds?\s*(\d*)\s*baths?\s*(\d*)\s*Toilets?')
+    df['beds'] = df['beds'].replace('', 0).astype(int)
+    df['baths'] = df['baths'].replace('', 0).astype(int)
+    df['toilets'] = df['toilets'].replace('', 0).astype(int)
+    df['price'] = df['price'].str.replace('₦', '')
 
-print(df)
+    df['price_int'] = pd.to_numeric(df['price'].str.replace(',', '').str.extract(r'(\d+)')[0])
+
+    df['price_per_day_₦'] = df['price_per_month_₦'] = df['price_per_year_₦'] = pd.NA
+
+    for index, row in df.iterrows():
+        if 'day' in row['price']:
+            df.at[index, 'price_per_month_₦'] = row['price_int'] * 30
+            df.at[index, 'price_per_year_₦'] = row['price_int'] * 365
+            df.at[index, 'price_per_day_₦'] = row['price_int']
+        elif 'month' in row['price']:
+            df.at[index, 'price_per_day_₦'] = row['price_int'] / 30
+            df.at[index, 'price_per_year_₦'] = row['price_int'] * 12
+            df.at[index, 'price_per_month_₦'] = row['price_int']
+        elif 'year' in row['price']:
+            df.at[index, 'price_per_month_₦'] = row['price_int'] / 12
+            df.at[index, 'price_per_day_₦'] = row['price_int'] / 365
+            df.at[index, 'price_per_year_₦'] = row['price_int']
+        else:
+            df.at[index, 'price_per_year_₦'] = row['price_int'] * 365
+            df.at[index, 'price_per_month_₦'] = row['price_int'] * 12
+            df.at[index, 'price_per_day_₦'] = row['price_int']
+
+    df.drop('price_int', axis=1, inplace=True)
+
+    df['date_posted'] = df['date_posted'].str.extract(r'Added (\d{2} \w{3} \d{4})', expand=False)
+    df['date_posted'] = pd.to_datetime(df['date_posted'], format='%d %b %Y')
+    df['state'] = df['address'].str.split().str[-1]
+    df.to_csv('propertypro_short_let.csv', index=False)
+
+for i in url:
+    print(i)
+    extract_data(i)
+
+transform_data()
