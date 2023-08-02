@@ -86,7 +86,7 @@ def transform_data():
                             'categories': types,
                             'address': locations,
                             'price': prices,
-                            'date_posted': date_posted,
+                            'date_post': date_posted,
                             'PIDs': PIDs,
                             'furnish': furnished,
                             'bed': beds})
@@ -124,9 +124,12 @@ def transform_data():
             df.at[index, 'price_per_day_₦'] = row['price_int']
 
     df.drop('price_int', axis=1, inplace=True)
+    df.drop('bed', axis=1, inplace=True)
 
-    df['date_posted'] = df['date_posted'].str.extract(r'Added (\d{2} \w{3} \d{4})', expand=False)
+    df['date_posted'] = df['date_post'].str.extract(r'Added (\d{2} \w{3} \d{4})', expand=False)
+    df['date_updated'] = df['date_post'].str.extract(r'Updated (\d{2} \w{3} \d{4})', expand=False)
     df['date_posted'] = pd.to_datetime(df['date_posted'], format='%d %b %Y')
+    df.drop('date_post', axis=1, inplace=True)
     df['state'] = df['address'].str.split().str[-1]
     df.to_csv('propertypro_short_let.csv', index=False)
 
