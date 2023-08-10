@@ -147,7 +147,7 @@ def transform_data():
     df['date_updated'] = pd.to_datetime(df['date_updated'], format='%d %b %Y')
     df.drop('date_post', axis=1, inplace=True)
     df['state'] = df['address'].str.split().str[-1]
-    df.to_csv(f'propertypro_short_let.csv{today}', index=False)
+    df.to_csv(f'../Real_Estate_data_pipeline/property_csv/propertypro_short_let{today}.csv', index=False)
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
     executor.map(extract_data, url)

@@ -126,8 +126,8 @@ def transform_data():
     df['date_updated'] = df['date_updated'].fillna("not updated")
     df.drop('date_post', axis=1, inplace=True)
     df['state'] = df['address'].str.split().str[-1]
-    df.to_csv(f'propertypro_for_rent.csv{today}', index=False)
-    return df
+    df.to_csv(f'../Real_Estate_data_pipeline/property_csv/propertypro_for_rent{today}.csv', index=False)
+
     
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
