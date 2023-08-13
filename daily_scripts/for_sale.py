@@ -6,10 +6,11 @@ import concurrent.futures
 import datetime
 
 today = datetime.date.today()
-today = '_' + str(today)
+yesterday = datetime.date.today() - datetime.timedelta(days=+1)
+yesterday_= '_' + str(yesterday)
 
 
-url = [f'https://www.propertypro.ng/property-for-sale?sort=postedOn&order=desc&page={i:d}'  for i in (range(0, 865))]
+url = [f'https://www.propertypro.ng/property-for-sale?sort=postedOn&order=desc&page={i:d}'  for i in (range(0, 100))]
 titles= []
 types = []
 locations = []
@@ -126,10 +127,11 @@ def transform_data():
     df['date_updated'] = df['date_post'].str.extract(r'Updated (\d{2} \w{3} \d{4})', expand=False)
     df['date_posted'] = pd.to_datetime(df['date_posted'], format='%d %b %Y', errors='coerce')
     df['date_updated'] = pd.to_datetime(df['date_updated'],  format='%d %b %Y', errors='coerce')
-    df['date_updated'] = df['date_updated'].fillna("not updated")
+    
     df.drop('date_post', axis=1, inplace=True)
     df['state'] = df['address'].str.split().str[-1]
-    df.to_csv(f'../Real_Estate_data_pipeline/property_csv/propertypro_for_sale{today}.csv', index=False)
+    df = df[(df['date_posted'].dt.date == yesterday) | (df['date_updated'].dt.date == yesterday)]
+    df.to_csv(f'../Real_Estate_data_pipeline/property_csv/propertypro_for_sale{yesterday_}.csv', index=False)
     
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:

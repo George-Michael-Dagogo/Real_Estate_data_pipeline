@@ -4,10 +4,12 @@ import pandas as pd
 import re
 import concurrent.futures
 import datetime
-today = datetime.date.today()
-today = '_' + str(today)
 
-url = [f'https://www.propertypro.ng/property-for-rent?sort=postedOn&order=desc&page={i:d}'  for i in (range(0, 424))]
+today = datetime.date.today()
+yesterday = datetime.date.today() - datetime.timedelta(days=+1)
+yesterday_= '_' + str(yesterday)
+
+url = [f'https://www.propertypro.ng/property-for-rent?sort=postedOn&order=desc&page={i:d}'  for i in (range(0, 200))]
 titles= []
 types = []
 locations = []
@@ -21,6 +23,7 @@ agents = []
 
 def extract_data(url):
     print('began')
+    print(url)
     page = requests.get(url)
     soup = BeautifulSoup(page.text,  "html.parser")
     house_box = soup.find_all('div', class_ = "single-room-sale listings-property")
@@ -123,10 +126,14 @@ def transform_data():
     df['date_updated'] = df['date_post'].str.extract(r'Updated (\d{2} \w{3} \d{4})', expand=False)
     df['date_posted'] = pd.to_datetime(df['date_posted'], format='%d %b %Y', errors='coerce')
     df['date_updated'] = pd.to_datetime(df['date_updated'], format='%d %b %Y', errors='coerce')
-    df['date_updated'] = df['date_updated'].fillna("not updated")
+    #df['date_updated'] = df['date_updated'].fillna("not updated")
     df.drop('date_post', axis=1, inplace=True)
     df['state'] = df['address'].str.split().str[-1]
-    df.to_csv(f'../Real_Estate_data_pipeline/property_csv/propertypro_for_rent{today}.csv', index=False)
+    df = df[(df['date_posted'].dt.date == yesterday) | (df['date_updated'].dt.date == yesterday)]
+    
+    
+    df.to_csv(f'../Real_Estate_data_pipeline/property_csv/propertypro_for_rent{yesterday_}.csv', index=False)
+    return df
 
     
 
