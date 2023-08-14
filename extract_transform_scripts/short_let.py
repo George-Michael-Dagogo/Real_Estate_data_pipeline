@@ -4,8 +4,7 @@ import pandas as pd
 import re
 import concurrent.futures
 import datetime
-today = datetime.date.today()
-today = '_' + str(today)
+
 
 
 url = [f'https://www.propertypro.ng/property-for-short-let?sort=beds&order=desc&page={i:d}'  for i in (range(0, 67))]
@@ -146,8 +145,10 @@ def transform_data():
     df['date_posted'] = pd.to_datetime(df['date_posted'], format='%d %b %Y', errors='coerce')
     df['date_updated'] = pd.to_datetime(df['date_updated'], format='%d %b %Y', errors='coerce')
     df.drop('date_post', axis=1, inplace=True)
+    df['type'] = 'short let'
+    df.rename(columns = {'price_per_year_₦':'price_₦'}, inplace = True)
     df['state'] = df['address'].str.split().str[-1]
-    df.to_csv(f'../Real_Estate_data_pipeline/property_csv/propertypro_short_let{today}.csv', index=False)
+    df.to_csv('../Real_Estate_data_pipeline/property_csv/propertypro_short_let.csv', index=False)
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
     executor.map(extract_data, url)

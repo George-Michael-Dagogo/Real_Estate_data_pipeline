@@ -139,8 +139,8 @@ def transform_data():
             df.at[index, 'price_per_month_₦'] = row['price_int'] * 12
             df.at[index, 'price_per_day_₦'] = row['price_int']
 
-    df.drop('price_int', axis=1, inplace=True)
-    df.drop('bed', axis=1, inplace=True)
+  
+    df = df.drop(columns=['bed', 'price_int','price_per_day_₦','price_per_month_₦','price'])
 
     df['date_posted'] = df['date_post'].str.extract(r'Added (\d{2} \w{3} \d{4})', expand=False)
     df['date_updated'] = df['date_post'].str.extract(r'Updated (\d{2} \w{3} \d{4})', expand=False)
@@ -148,8 +148,10 @@ def transform_data():
     df['date_updated'] = pd.to_datetime(df['date_updated'], format='%d %b %Y', errors='coerce')
     df.drop('date_post', axis=1, inplace=True)
     df['state'] = df['address'].str.split().str[-1]
+    df['type'] = 'short let'
+    df.rename(columns = {'price_per_year_₦':'price_₦'}, inplace = True)
     df = df[(df['date_posted'].dt.date == yesterday) | (df['date_updated'].dt.date == yesterday)]
-    df.to_csv(f'../Real_Estate_data_pipeline/property_csv/propertypro_short_let{yesterday_}.csv', index=False)
+    df.to_csv('../Real_Estate_data_pipeline/property_csv/propertypro_short_let.csv', index=False)
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
     executor.map(extract_data, url)

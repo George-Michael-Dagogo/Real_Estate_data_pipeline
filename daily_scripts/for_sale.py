@@ -127,7 +127,7 @@ def transform_data():
     df['date_updated'] = df['date_post'].str.extract(r'Updated (\d{2} \w{3} \d{4})', expand=False)
     df['date_posted'] = pd.to_datetime(df['date_posted'], format='%d %b %Y', errors='coerce')
     df['date_updated'] = pd.to_datetime(df['date_updated'],  format='%d %b %Y', errors='coerce')
-    
+    df['type'] = 'for sale'
     df.drop('date_post', axis=1, inplace=True)
     df['state'] = df['address'].str.split().str[-1]
     df = df[(df['date_posted'].dt.date == yesterday) | (df['date_updated'].dt.date == yesterday)]

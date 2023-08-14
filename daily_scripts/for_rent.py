@@ -116,7 +116,7 @@ def transform_data():
 
     df['price'] = df['price'].str.replace('₦', '')
 
-    df['price_₦_yearly'] = pd.to_numeric(df['price'].str.replace(',', '').str.extract(r'(\d+)')[0])
+    df['price_₦'] = pd.to_numeric(df['price'].str.replace(',', '').str.extract(r'(\d+)')[0])
 
     
     df.drop('price', axis=1, inplace=True)
@@ -126,7 +126,7 @@ def transform_data():
     df['date_updated'] = df['date_post'].str.extract(r'Updated (\d{2} \w{3} \d{4})', expand=False)
     df['date_posted'] = pd.to_datetime(df['date_posted'], format='%d %b %Y', errors='coerce')
     df['date_updated'] = pd.to_datetime(df['date_updated'], format='%d %b %Y', errors='coerce')
-    #df['date_updated'] = df['date_updated'].fillna("not updated")
+    df['type'] = 'rent'
     df.drop('date_post', axis=1, inplace=True)
     df['state'] = df['address'].str.split().str[-1]
     df = df[(df['date_posted'].dt.date == yesterday) | (df['date_updated'].dt.date == yesterday)]

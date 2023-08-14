@@ -4,8 +4,7 @@ import pandas as pd
 import re
 import concurrent.futures
 import datetime
-today = datetime.date.today()
-today = '_' + str(today)
+
 
 url = [f'https://www.propertypro.ng/property-for-rent?sort=postedOn&order=desc&page={i:d}'  for i in (range(0, 424))]
 titles= []
@@ -113,7 +112,7 @@ def transform_data():
 
     df['price'] = df['price'].str.replace('₦', '')
 
-    df['price_₦_yearly'] = pd.to_numeric(df['price'].str.replace(',', '').str.extract(r'(\d+)')[0])
+    df['price_₦'] = pd.to_numeric(df['price'].str.replace(',', '').str.extract(r'(\d+)')[0])
 
     
     df.drop('price', axis=1, inplace=True)
@@ -123,10 +122,10 @@ def transform_data():
     df['date_updated'] = df['date_post'].str.extract(r'Updated (\d{2} \w{3} \d{4})', expand=False)
     df['date_posted'] = pd.to_datetime(df['date_posted'], format='%d %b %Y', errors='coerce')
     df['date_updated'] = pd.to_datetime(df['date_updated'], format='%d %b %Y', errors='coerce')
-    df['date_updated'] = df['date_updated'].fillna("not updated")
+    df['type'] = 'rent'
     df.drop('date_post', axis=1, inplace=True)
     df['state'] = df['address'].str.split().str[-1]
-    df.to_csv(f'../Real_Estate_data_pipeline/property_csv/propertypro_for_rent{today}.csv', index=False)
+    df.to_csv('../Real_Estate_data_pipeline/property_csv/propertypro_for_rent.csv', index=False)
 
     
 
