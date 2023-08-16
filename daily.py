@@ -1,8 +1,9 @@
 import subprocess
 import os
 import pandas as pd
-from azure.storage.blob import BlobServiceClient, BlobClient
 import datetime
+from azure.identity import DefaultAzureCredential
+from azure.storage.filedatalake import DataLakeServiceClient
 
 today = datetime.date.today()
 yesterday = datetime.date.today() - datetime.timedelta(days=+1)
@@ -14,9 +15,9 @@ def extract_data():
     for i in os.listdir(path):
         os.remove(path +'/' + i)
 
-    subprocess.run('''python daily_scripts/for_rent.py & 
-    python daily_scripts/for_sale.py & 
-    python daily_scripts/short_let.py''', shell=True)
+    os.system('python daily_scripts/for_rent.py')
+    os.system('python daily_scripts/for_sale.py')
+    os.system('python daily_scripts/short_let.py')
 
 
 def merge_csv():
@@ -34,25 +35,26 @@ def merge_csv():
     merged_df.to_csv(f'../Real_Estate_data_pipeline/property_csv/propertypro_merged{yesterday_}.csv', index=False)
 
 
+def upload_ADLS():
+    storage_account_name='testtechmichael'
+    storage_account_key='L9KwVgy28xG0vrcvWHA3Pb7uJFeclYGtj6u2NYA0/oYT24+TQGE8XnuIvEOlea1qVdmnvNIokPgf+AStsxUFtw=='
 
+    service_client = DataLakeServiceClient(account_url="{}://{}.dfs.core.windows.net".format(
+                "https", storage_account_name), credential=storage_account_key)
+        
+    file_system_client = service_client.get_file_system_client(file_system="testtech")
 
+    directory_client = file_system_client.get_directory_client(directory="testtech")
+            
+    file_client = directory_client.create_file(f"propertypro_merged{yesterday_}.csv")
 
-def load_blob_storage(connection_string, container_name, source_directory):
-    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
-    container_client = blob_service_client.get_container_client(container_name)
+    local_file = pd.read_csv(f"../Real_Estate_data_pipeline/property_csv/propertypro_merged{yesterday_}.csv")
+    df = pd.DataFrame(local_file).to_csv()
 
-    # List all files in the source directory
-    for file in os.listdir(source_directory):
-        file_path = os.path.join(source_directory, file)
+    file_client.upload_data(data=df,overwrite=True) #Either of the lines works
+    file_client.append_data(data=df, offset=0, length=len(df)) 
+    #file_client.flush_data(len(df))
 
-        blob_client = container_client.get_blob_client(file)
-
-        with open(file_path, "rb") as data:
-            blob_client.upload_blob(data)
-
-        print(f" '{file_path}' uploaded to Blob Storage.")
-
-#extract_data()
-#merge_csv()
-store=''
-load_blob_storage(connection_string = store, container_name = 'testtech', source_directory = '../Real_Estate_data_pipeline/property_csv' )
+extract_data()
+merge_csv()
+upload_ADLS()
