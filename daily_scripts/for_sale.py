@@ -131,7 +131,7 @@ def transform_data():
     df.drop('date_post', axis=1, inplace=True)
     df['state'] = df['address'].str.split().str[-1]
     df = df[(df['date_posted'].dt.date == yesterday) | (df['date_updated'].dt.date == yesterday)]
-    df.to_csv(f'../Real_Estate_data_pipeline/property_csv/propertypro_for_sale{yesterday_}.csv', index=False)
+    df.to_csv(f'../Real_Estate_data_pipeline_NG/property_csv/propertypro_for_sale{yesterday_}.csv', index=False)
     
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:

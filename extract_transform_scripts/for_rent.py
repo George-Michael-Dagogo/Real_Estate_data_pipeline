@@ -125,7 +125,7 @@ def transform_data():
     df['type'] = 'rent'
     df.drop('date_post', axis=1, inplace=True)
     df['state'] = df['address'].str.split().str[-1]
-    df.to_csv('../Real_Estate_data_pipeline/property_csv/propertypro_for_rent.csv', index=False)
+    df.to_csv('../Real_Estate_data_pipeline_NG/property_csv/propertypro_for_rent.csv', index=False)
 
     
 

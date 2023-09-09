@@ -9,7 +9,8 @@ today = datetime.date.today()
 yesterday = datetime.date.today() - datetime.timedelta(days=+1)
 yesterday_= '_' + str(yesterday)
 
-path = '../Real_Estate_data_pipeline/property_csv'
+path = '../Real_Estate_data_pipeline_NG/property_csv'
+
 
 def extract_data():
     for i in os.listdir(path):

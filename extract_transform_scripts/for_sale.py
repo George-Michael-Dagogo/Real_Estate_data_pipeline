@@ -127,7 +127,7 @@ def transform_data():
     df['type'] = 'for sale'
     df.drop('date_post', axis=1, inplace=True)
     df['state'] = df['address'].str.split().str[-1]
-    df.to_csv('../Real_Estate_data_pipeline/property_csv/propertypro_for_sale.csv', index=False)
+    df.to_csv('../Real_Estate_data_pipeline_NG/property_csv/propertypro_for_sale.csv', index=False)
     
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:

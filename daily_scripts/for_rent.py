@@ -132,7 +132,7 @@ def transform_data():
     df = df[(df['date_posted'].dt.date == yesterday) | (df['date_updated'].dt.date == yesterday)]
     
     
-    df.to_csv(f'../Real_Estate_data_pipeline/property_csv/propertypro_for_rent{yesterday_}.csv', index=False)
+    df.to_csv(f'../Real_Estate_data_pipeline_NG/property_csv/propertypro_for_rent{yesterday_}.csv', index=False)
     return df
 
     

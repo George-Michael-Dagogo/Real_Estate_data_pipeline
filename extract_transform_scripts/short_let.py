@@ -148,7 +148,7 @@ def transform_data():
     df['type'] = 'short let'
     df.rename(columns = {'price_per_year_₦':'price_₦'}, inplace = True)
     df['state'] = df['address'].str.split().str[-1]
-    df.to_csv('../Real_Estate_data_pipeline/property_csv/propertypro_short_let.csv', index=False)
+    df.to_csv('../Real_Estate_data_pipeline_NG/property_csv/propertypro_short_let.csv', index=False)
 
 with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
     executor.map(extract_data, url)
