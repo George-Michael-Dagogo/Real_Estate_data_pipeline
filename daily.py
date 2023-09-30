@@ -49,7 +49,7 @@ def upload_ADLS():
             
     file_client = directory_client.create_file(f"propertypro_merged{yesterday_}.csv")
 
-    local_file = pd.read_csv(f"../Real_Estate_data_pipeline/property_csv/propertypro_merged{yesterday_}.csv")
+    local_file = pd.read_csv(f"../Real_Estate_data_pipeline_NG/property_csv/propertypro_merged{yesterday_}.csv")
     df = pd.DataFrame(local_file).to_csv()
 
     file_client.upload_data(data=df,overwrite=True) #Either of the lines works
