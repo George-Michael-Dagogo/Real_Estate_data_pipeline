@@ -28,7 +28,7 @@ def merge_csv():
         os.remove(csv_file_path)
 
     merged_df = pd.concat(dfs, ignore_index=True) 
-    merged_df.to_csv(f'../Real_Estate_data_pipeline/property_csv/propertypro_merged{today}.csv', index=False)
+    merged_df.to_csv(f'../Real_Estate_data_pipeline_NG/property_csv/propertypro_merged{today}.csv', index=False)
     return merged_df
 
 def upload_ADLS():
