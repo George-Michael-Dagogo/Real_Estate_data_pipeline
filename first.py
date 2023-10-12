@@ -2,6 +2,7 @@ import subprocess
 import os
 import datetime
 import pandas as pd
+from sqlalchemy import create_engine
 from azure.identity import DefaultAzureCredential
 from azure.storage.filedatalake import DataLakeServiceClient
 
@@ -28,7 +29,7 @@ def merge_csv():
         os.remove(csv_file_path)
 
     merged_df = pd.concat(dfs, ignore_index=True) 
-    merged_df.to_csv(f'../Real_Estate_data_pipeline_NG/property_csv/propertypro_merged{today}.csv', index=False)
+    merged_df.to_csv('../Real_Estate_data_pipeline_NG/property_csv/propertypro_merged.csv', index=False)
     return merged_df
 
 def upload_ADLS():
@@ -53,10 +54,10 @@ def upload_ADLS():
     print(f'{file_client} uploaded successfully')
 
 def to_database():
-    conn_string = ('CONN_STRING')
+    csv_folder = '/workspace/Real_Estate_data_pipeline_NG/property_csv'
+    database_url = 'postgresql://testtech:George1234@testtech.postgres.database.azure.com:5432/postgres'
 
-    db = create_engine(conn_string)
-    conn = db.connect() 
+    engine = create_engine(database_url)
     for filename in os.listdir(csv_folder):
         if filename.endswith('.csv'):
             # Load the CSV into a DataFrame
@@ -64,14 +65,14 @@ def to_database():
             
             # Extract the table name from the filename (without the .csv extension)
             table_name = os.path.splitext(filename)[0]
+            print(table_name)
             
             # Write the DataFrame to the database
             df.to_sql(name=table_name, con=engine, if_exists='replace', index=False)
 
-    # Close the database connection
-    conn.close()
 
 
 extract_data()
 merge_csv()
 #upload_ADLS()
+to_database()
