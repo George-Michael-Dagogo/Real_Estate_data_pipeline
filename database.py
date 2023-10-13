@@ -5,39 +5,17 @@ import sqlalchemy
 
 
 # Replace the placeholders with your PostgreSQL database connection details
-#db_connection = "postgresql://testtech:George1234@testtech.postgres.database.azure.com:5432/postgres"
-#engine = create_engine(db_connection)
+db_connection = "postgresql://testtech:George1234@testtech.postgres.database.azure.com:5432/postgres"
+engine = create_engine(db_connection)
 
-# Define data types for each column
-dtype_mapping = {
-    'title': sqlalchemy.types.VARCHAR(),
-    'categories': sqlalchemy.types.VARCHAR(),
-    'address': sqlalchemy.types.VARCHAR(),
-    'agent': sqlalchemy.types.VARCHAR(),
-    'PIDs': sqlalchemy.types.VARCHAR(),
-    'newly_built': sqlalchemy.types.BOOLEAN(),
-    'serviced': sqlalchemy.types.BOOLEAN(),
-    'furnished': sqlalchemy.types.BOOLEAN(),
-    'beds': sqlalchemy.types.INTEGER(),
-    'baths': sqlalchemy.types.INTEGER(),
-    'toilets': sqlalchemy.types.INTEGER(),
-    'price_₦': sqlalchemy.types.NUMERIC(precision=15),
-    'date_posted': sqlalchemy.types.DATE(),
-    'date_updated': sqlalchemy.types.DATE(),
-    'type': sqlalchemy.types.TEXT(),
-    'state': sqlalchemy.types.VARCHAR(length=20),
-    'price': sqlalchemy.types.NUMERIC(precision=15 ),
-    'price_per_day_₦': sqlalchemy.types.NUMERIC(precision=15),
-    'price_per_month_₦': sqlalchemy.types.NUMERIC(precision=15)
-}
 
 # Read the CSV file into a Pandas DataFrame
-#df = pd.read_csv('../Real_Estate_data_pipeline_NG/property_csv/propertypro_merged.csv')
+df = pd.read_csv('../Real_Estate_data_pipeline_NG/property_csv/propertypro_merged.csv')
 
 # Use the to_sql method to insert the data into the PostgreSQL database
-#df.to_sql('propertypro_merged', engine, if_exists='replace', index=False )
+df.to_sql('propertypro_merged', engine, if_exists='replace', index=False)
 
-#engine.dispose()
+engine.dispose()
 
 
 
@@ -146,33 +124,33 @@ ADD CONSTRAINT fk_location FOREIGN KEY (LocationID) REFERENCES LocationDimension
 '''
 
 
-insert_data = '''-- Insert data into the Property Dimension Table from 'propertypro_merged'
+insert_data_dimensions = '''-- Insert data into the Property Dimension Table from 'propertypro_merged'
 INSERT INTO PropertyDimension (NewlyBuilt, Serviced, Furnished, Beds, Baths, Toilets, Type)
 SELECT
     newly_built, serviced, furnished, beds, baths, toilets, type
-FROM propertypro_merged;
+FROM propertypro_merged LIMIT 50;
 
 -- Insert data into the Agent Dimension Table from 'propertypro_merged'
 INSERT INTO AgentDimension (AgentName)
 SELECT DISTINCT agent
-FROM propertypro_merged;
+FROM propertypro_merged LIMIT 50;
 
 -- Insert data into the Category Dimension Table from 'propertypro_merged'
 INSERT INTO CategoryDimension (Title, Categories)
 SELECT Title, categories
-FROM propertypro_merged;
+FROM propertypro_merged LIMIT 50;
 
 -- Insert data into the Time Dimension Table from 'propertypro_merged'
 INSERT INTO TimeDimension (DatePosted, DateUpdated)
 SELECT date_posted::DATE, date_updated::DATE
-FROM propertypro_merged;
+FROM propertypro_merged LIMIT 50;
 
 -- Insert data into the Location Dimension Table from 'propertypro_merged'
 INSERT INTO LocationDimension (Address, State)
 SELECT address, state
-FROM propertypro_merged;
+FROM propertypro_merged LIMIT 50;'''
 
--- Insert data into the Property Listing Fact Table from 'propertypro_merged'
+insert_fact_table='''-- Insert data into the Property Listing Fact Table from 'propertypro_merged'
 INSERT INTO PropertyListingFact (PropertyID, AgentID, CategoryID, DateID, LocationID, Price_₦, Price_Per, PricePerDay, PricePerMonth)
 SELECT
     pd.PropertyID, ad.AgentID, cd.CategoryID, td.DateID, ld.LocationID, pm.price_₦, price, pm.price_per_day_₦, pm.price_per_month_₦
@@ -181,11 +159,11 @@ INNER JOIN PropertyDimension AS pd ON pm.newly_built = pd.NewlyBuilt
 INNER JOIN AgentDimension AS ad ON pm.agent = ad.AgentName
 INNER JOIN CategoryDimension AS cd ON pm.categories = cd.Categories
 INNER JOIN TimeDimension AS td ON pm.date_posted::DATE = td.DatePosted AND pm.date_updated::DATE = td.DateUpdated
-INNER JOIN LocationDimension AS ld ON pm.address = ld.Address;
+INNER JOIN LocationDimension AS ld ON pm.address = ld.Address LIMIT 50;
 '''
 
 # Execute a simple query
-cursor.execute(insert_data)
+cursor.execute('''SELECT * FROM PropertyListingFact;''')
 
 # Fetch and print the query result
 result = cursor.fetchall()
